@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { debounce } from "debounce";
 import { useRouter, usePathname } from "next/navigation"
-import { BiSearch, BiUser } from "react-icons/bi"
+import { BiSearch, BiUser,BiDollarCircle } from "react-icons/bi"
 import { AiOutlinePlus } from "react-icons/ai"
 import { BsThreeDotsVertical } from "react-icons/bs"
 import { FiLogOut } from "react-icons/fi"
@@ -124,6 +124,16 @@ export default function TopNav() {
                                             >
                                                 <BiUser size="20"/>
                                                 <span className="pl-2 font-semibold text-sm">Profile</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => { 
+                                                    router.push(`/points`)
+                                                    setShowMenu(false)
+                                                }}
+                                                className="flex items-center w-full justify-start py-3 px-2 hover:bg-gray-100 cursor-pointer"
+                                            >
+                                                <BiDollarCircle size="20"/>
+                                                <span className="pl-2 font-semibold text-sm">Points</span>
                                             </button>
                                             <button 
                                                 onClick={async () => {

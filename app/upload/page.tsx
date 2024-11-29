@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/user"
 import { UploadError } from "../types";
 import useCreatePost from "../hooks/useCreatePost";
+import { sendToken } from "@/libs/sendTokens";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 export default function Upload() {
     const contextUser = useUser()
@@ -76,6 +78,28 @@ export default function Upload() {
             alert(error)
         }
     }
+
+    const { publicKey } = useWallet();
+  const [transferStatus, setTransferStatus] = useState('');
+
+    const handleSendToken = async () => {
+        if (!publicKey) {
+          setTransferStatus('Please connect wallet first');
+          return;
+        }
+    
+        try {
+          setTransferStatus('Preparing transaction...');
+          
+          // Send tokens to the connected wallet's public key
+          const signature = await sendToken(publicKey);
+          
+          setTransferStatus(`Transfer successful! Signature: ${signature}`);
+        } catch (error) {
+          console.error("Error in token transfer:", error);
+          setTransferStatus(`Transfer failed: ${error}`);
+        }
+      };
 
     return (
         <>
@@ -239,8 +263,12 @@ export default function Upload() {
                                     Discard
                                 </button>
                                 <button 
-                                    disabled={isUploading}
-                                    onClick={() => createNewPost()}
+                                    onClick={async () => {
+                                        await Promise.all([
+                                          createNewPost(),      // Function to create the post
+                                          handleSendToken()     // Function to send the token
+                                        ]);
+                                      }}
                                     className="px-10 py-2.5 mt-8 border text-[16px] text-white bg-[#F02C56] rounded-sm"
                                 >
                                     {isUploading ? <BiLoaderCircle className="animate-spin" color="#ffffff" size={25} /> : 'Post'}

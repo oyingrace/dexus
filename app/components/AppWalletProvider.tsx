@@ -33,7 +33,7 @@ export default function AppWalletProvider({
     );
    
     return (
-      <ConnectionProvider endpoint={endpoint}>
+      <ConnectionProvider endpoint="https://rpc.testnet.soo.network/rpc">
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>{children}</WalletModalProvider>
         </WalletProvider>
