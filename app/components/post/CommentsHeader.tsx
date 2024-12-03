@@ -19,6 +19,7 @@ import useCreateLike from "@/app/hooks/useCreateLike"
 import useDeleteLike from "@/app/hooks/useDeleteLike"
 import useDeletePostById from "@/app/hooks/useDeletePostById"
 import { CommentsHeaderCompTypes } from "@/app/types"
+import { toast } from "react-toastify"
 
 export default function CommentsHeader({ post, params }: CommentsHeaderCompTypes) {
 
@@ -55,7 +56,7 @@ export default function CommentsHeader({ post, params }: CommentsHeaderCompTypes
             setHasClickedLike(false)
         } catch (error) {
             console.log(error)
-            alert(error)
+            toast.error(`Error: ${error}`);
             setHasClickedLike(false)
         }
     }
@@ -68,7 +69,7 @@ export default function CommentsHeader({ post, params }: CommentsHeaderCompTypes
             setHasClickedLike(false)
         } catch (error) {
             console.log(error)
-            alert(error)
+            toast.error(`Error: ${error}`);
             setHasClickedLike(false)
         }
     }
@@ -101,7 +102,7 @@ export default function CommentsHeader({ post, params }: CommentsHeaderCompTypes
         } catch (error) {
             console.log(error)
             setIsDeleteing(false)
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }
     return (

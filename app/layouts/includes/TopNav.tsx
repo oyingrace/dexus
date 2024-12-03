@@ -11,6 +11,7 @@ import { useGeneralStore } from "@/app/stores/general"
 import useCreateBucketUrl from "@/app/hooks/useCreateBucketUrl"
 import { RandomUsers } from "@/app/types"
 import useSearchProfilesByName from "@/app/hooks/useSearchProfilesByName";
+import { toast } from "react-toastify";
 
 export default function TopNav() {    
     const userContext = useUser()
@@ -33,7 +34,7 @@ export default function TopNav() {
         } catch (error) {
             console.log(error)
             setSearchProfiles([])
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }, 500)
 

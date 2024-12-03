@@ -11,6 +11,9 @@ import { UploadError } from "../types";
 import useCreatePost from "../hooks/useCreatePost";
 import { sendToken } from "@/libs/sendTokens";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import SuccessModal from "../components/SuccessModal";
+import { toast } from "react-toastify";
+import { useTransaction } from "../components/TransactionContext";
 
 export default function Upload() {
     const contextUser = useUser()
@@ -21,6 +24,7 @@ export default function Upload() {
     let [file, setFile] = useState<File | null>(null);
     let [error, setError] = useState<UploadError | null>(null);
     let [isUploading, setIsUploading] = useState<boolean>(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (!contextUser?.user) router.push('/')
@@ -62,30 +66,33 @@ export default function Upload() {
         return isError
     }
 
-    const createNewPost = async () => {
+    const createNewPost = async () : Promise<boolean> => {
         let isError = validate()
-        if (isError) return
-        if (!file || !contextUser?.user) return
+        if (isError) return false
+        if (!file || !contextUser?.user) return false
         setIsUploading(true)
 
         try {
-            await useCreatePost(file, contextUser?.user?.id, caption)
-            router.push(`/profile/${contextUser?.user?.id}`)
-            setIsUploading(false)
+            await useCreatePost(file, contextUser?.user?.id, caption);
+            //router.push(`/profile/${contextUser?.user?.id}`);
+            setIsUploading(false);
+            return true;
         } catch (error) {
-            console.log(error)
-            setIsUploading(false)
-            alert(error)
+            console.log(error);
+            setIsUploading(false);
+            toast.error(`Error: ${error}`);
+            return false;
         }
     }
 
     const { publicKey } = useWallet();
-  const [transferStatus, setTransferStatus] = useState('');
+    const [transferStatus, setTransferStatus] = useState('');
+    const { updateTransactionDetails } = useTransaction();
 
-    const handleSendToken = async () => {
+    const handleSendToken = async (): Promise<boolean> => {
         if (!publicKey) {
           setTransferStatus('Please connect wallet first');
-          return;
+          return false;
         }
     
         try {
@@ -93,13 +100,43 @@ export default function Upload() {
           
           // Send tokens to the connected wallet's public key
           const signature = await sendToken(publicKey);
+
+          updateTransactionDetails({
+            signature: signature,
+            recipientPublicKey: publicKey.toBase58(),
+            amount: 10 // Constant amount
+          });
           
           setTransferStatus(`Transfer successful! Signature: ${signature}`);
+          return true;
         } catch (error) {
           console.error("Error in token transfer:", error);
           setTransferStatus(`Transfer failed: ${error}`);
+          return false;
         }
       };
+
+      const handlePost = async () => {
+        try {
+          setIsUploading(true);
+          const [postSuccess, tokenSuccess] = await Promise.all([
+            createNewPost(),
+            handleSendToken(),
+          ]);
+
+          console.log('Post Success:', postSuccess, 'Token Success:', tokenSuccess);
+    
+          if (postSuccess && tokenSuccess) {
+            console.log('Opening Modal');
+            setIsModalOpen(true); // Open the modal
+          }
+        } catch (error) {
+          console.log('Error in posting or sending tokens:', error);
+        } finally {
+          setIsUploading(false);
+        }
+      };
+    
 
     return (
         <>
@@ -263,16 +300,20 @@ export default function Upload() {
                                     Discard
                                 </button>
                                 <button 
-                                    onClick={async () => {
-                                        await Promise.all([
-                                          createNewPost(),      // Function to create the post
-                                          handleSendToken()     // Function to send the token
-                                        ]);
-                                      }}
+                                    onClick={handlePost}
                                     className="px-10 py-2.5 mt-8 border text-[16px] text-white bg-[#F02C56] rounded-sm"
                                 >
                                     {isUploading ? <BiLoaderCircle className="animate-spin" color="#ffffff" size={25} /> : 'Post'}
                                 </button>
+
+                                <SuccessModal
+                               isOpen={isModalOpen}
+                               onClose={() => {
+                                setIsModalOpen(false);
+                                router.push(`/profile/${contextUser?.user?.id}`); 
+                              }}
+                                />
+
                             </div>
 
                             {error ? (

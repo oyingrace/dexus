@@ -6,6 +6,7 @@ import { useGeneralStore } from "@/app/stores/general";
 import { BiLoaderCircle } from "react-icons/bi";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
 
 export default function Login() {
     let { setIsLoginOpen } = useGeneralStore();
@@ -56,7 +57,7 @@ export default function Login() {
         } catch (error) {
             console.log(error)
             setLoading(false)
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }
 

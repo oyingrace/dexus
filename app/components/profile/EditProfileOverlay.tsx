@@ -14,6 +14,7 @@ import useUpdateProfile from "@/app/hooks/useUpdateProfile";
 import useChangeUserImage from "@/app/hooks/useChangeUserImage";
 import useUpdateProfileImage from "@/app/hooks/useUpdateProfileImage";
 import useCreateBucketUrl from "@/app/hooks/useCreateBucketUrl";
+import { toast } from "react-toastify";
  
 export default function EditProfileOverlay() {
     
@@ -73,8 +74,8 @@ export default function EditProfileOverlay() {
         if (!contextUser?.user) return
 
         try {
-            if (!file) return alert('You have no file')
-            if (!cropper) return alert('You have no file')
+            if (!file) return toast.error('You have no file')
+            if (!cropper) return toast.error('You have no file')
             setIsUpdating(true)
 
             const newImageId = await useChangeUserImage(file, cropper, userImage)
@@ -87,7 +88,7 @@ export default function EditProfileOverlay() {
         } catch (error) {
             console.log(error)
             setIsUpdating(false)
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }
 

@@ -4,7 +4,7 @@ import { TOKEN_PROGRAM_ID, createTransferInstruction, createAssociatedTokenAccou
 export async function sendToken(recipientPublicKey: PublicKey) {
   const connection = new Connection("https://rpc.testnet.soo.network/rpc", "confirmed");
 
-  // Hardcoded sender wallet (replace with your actual sender wallet)
+  
   const senderWallet = Keypair.fromSecretKey(
     new Uint8Array([
       64, 45, 161, 163, 124, 19, 208, 228, 21, 74, 25, 213, 189, 58, 73, 62, 52, 15, 238, 81, 
@@ -14,7 +14,7 @@ export async function sendToken(recipientPublicKey: PublicKey) {
     ])
   );
 
-  // Token mint address (replace with your actual token mint)
+  
   const tokenMintAddress = new PublicKey("DvhNHdqpHvUFpxm7LtAWZYMGSV4MPAygJrM5YZ2Aixjg");
 
   console.log("Starting token transfer...");

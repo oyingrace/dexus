@@ -7,6 +7,7 @@ import { useCommentStore } from "@/app/stores/comment"
 import useCreateComment from '@/app/hooks/useCreateComment' 
 import { useGeneralStore } from "@/app/stores/general"
 import { CommentsCompTypes } from "@/app/types"
+import { toast } from "react-toastify"
 
 export default function Comments({ params }: CommentsCompTypes) {
 
@@ -29,7 +30,7 @@ export default function Comments({ params }: CommentsCompTypes) {
             setIsUploading(false)
         } catch (error) {
             console.log(error)
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }
 

@@ -6,33 +6,14 @@ import { useUser } from "@/app/context/user";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AccountLayout } from "@solana/spl-token";
+import { toast } from "react-toastify";
+import { useTransaction } from "../TransactionContext";
 
 
 
-const TOKEN_MINT_ADDRESS = "DvhNHdqpHvUFpxm7LtAWZYMGSV4MPAygJrM5YZ2Aixjg"; // Replace with your token mint address
-const RPC_URL = "https://rpc.testnet.soo.network/rpc"; // Your Solana RPC endpoint
+const TOKEN_MINT_ADDRESS = "DvhNHdqpHvUFpxm7LtAWZYMGSV4MPAygJrM5YZ2Aixjg"; 
+const RPC_URL = "https://rpc.testnet.soo.network/rpc"; 
 
-// Dummy data 
-const dummyTransactions = [
-  {
-    hash: '0xa1b2c3d4e5f6g7h8i9j0',
-    type: 'Reward',
-    amount: '+10 DEXUS',
-    date: '2024-03-15'
-  },
-  {
-    hash: '0xk1l2m3n4o5p6q7r8s9t0',
-    type: 'Reward',
-    amount: '+10 DEXUS',
-    date: '2024-03-10'
-  },
-  {
-    hash: '0xu1v2w3x4y5z6a7b8c9d0',
-    type: 'Reward',
-    amount: '+10 DEXUS',
-    date: '2024-03-05'
-  }
-];
 
 const PointsDashboard: React.FC = () => {
   const router = useRouter();
@@ -41,6 +22,7 @@ const PointsDashboard: React.FC = () => {
   const walletAddress = publicKey?.toBase58() || "Not Connected";
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const { transactionDetails } = useTransaction();
 
   useEffect(() => {
   const fetchTokenBalance = async () => {
@@ -63,46 +45,9 @@ const PointsDashboard: React.FC = () => {
   fetchTokenBalance();
   }, [publicKey]); // Depend on the `publicKey`
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!publicKey) return;
-      
-      const connection = new Connection(RPC_URL);
-      
-      try {
-        // Fetch recent transactions for the wallet
-        const txs = await connection.getConfirmedSignaturesForAddress2(publicKey, {
-          limit: 3, // Number of transactions to fetch
-        });
-        
-        const txDetails = await Promise.all(
-          txs.map(async (tx) => {
-            const details = await connection.getTransaction(tx.signature);
-            return {
-              hash: tx.signature,
-              type: details?.meta?.err ? 'Failed' : 'Success',
-              amount: details?.meta?.preBalances?.[0] && details?.meta?.postBalances?.[0]
-                ? details.meta.preBalances[0] - details.meta.postBalances[0]
-                : 0, // Safely calculate change in balance, default to 0 if undefined
-              date: details?.blockTime ? new Date(details.blockTime * 1000).toLocaleDateString() : 'Date not available', // Fallback date
-            };
-          })
-        );
-        
-        
-        setTransactions(txDetails);
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-      }
-    };
-    
-    fetchTransactions();
-  }, [publicKey]); // Run whenever `publicKey` changes
-
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(walletAddress);
-    alert("Wallet address copied!");
+  const handleCopyText = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied!`);
   };
 
 
@@ -135,7 +80,9 @@ const PointsDashboard: React.FC = () => {
             </div>
             <div className="bg-gray-100 p-3 rounded-md">
               <p className="text-sm text-gray-600 truncate">{walletAddress}</p>
-              <button onClick={handleCopy} className="ml-2 hover:text-blue-600">
+              <button 
+               onClick={() => handleCopyText(walletAddress, 'Wallet Address')}
+               className="ml-2 hover:text-blue-600">
                 <Copy size={16} />
               </button>
             </div>
@@ -160,48 +107,50 @@ const PointsDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Transactions Section */}
-       {/* <div className="bg-white shadow-md rounded-lg p-6">
-          <div className="flex items-center mb-4">
-            <History className="mr-3 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-700">Recent Transactions</h2>
+        {transactionDetails && (
+          <div className="bg-white shadow-md rounded-lg p-6 mt-6">
+            <div className="flex items-center mb-4">
+              <History className="mr-3 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-700">Last Transaction</h2>
+            </div>
+            <div className="space-y-2">
+  <div className="flex items-center">
+    <span className="font-medium text-gray-600 mr-2">Signature: </span>
+    <span className="text-blue-500 truncate flex-grow">{transactionDetails.signature}</span>
+    <button 
+      onClick={() => handleCopyText(transactionDetails.signature!, 'Signature')}
+      className="ml-2 hover:text-blue-600"
+    >
+      <Copy size={16} />
+    </button>
+  </div>
+  <div className="flex items-center">
+    <span className="font-medium text-gray-600 mr-2">To: </span>
+    <span className="text-green-500 truncate flex-grow">{transactionDetails.recipientPublicKey}</span>
+    <button 
+      onClick={() => handleCopyText(transactionDetails.recipientPublicKey!, 'Recipient Address')}
+      className="ml-2 hover:text-blue-600"
+    >
+      <Copy size={16} />
+    </button>
+  </div>
+  <div className="flex items-center">
+    <span className="font-medium text-gray-600 mr-2">From: </span>
+    <span className="text-green-500 truncate flex-grow">DvhNHdqpHvUFpxm7LtAWZYMGSV4MPAygJrM5YZ2Aixjg</span>
+    <button 
+      onClick={() => handleCopyText('DvhNHdqpHvUFpxm7LtAWZYMGSV4MPAygJrM5YZ2Aixjg', 'Sender Address')}
+      className="ml-2 hover:text-blue-600"
+    >
+      <Copy size={16} />
+    </button>
+  </div>
+  <div>
+    <span className="font-medium text-gray-600">Reward: </span>
+    <span className="text-purple-500">10 $DEXUS</span>
+  </div>
+ </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-100 text-gray-600">
-                <tr>
-                  <th className="p-3">Transaction Hash</th>
-                  <th className="p-3">Type</th>
-                  <th className="p-3">Amount</th>
-                  <th className="p-3">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-  {transactions.length > 0 ? (
-    transactions.map((transaction, index) => (
-      <tr key={index} className="border-b hover:bg-gray-50">
-        <td className="p-3 text-blue-500 truncate max-w-[200px]">
-          {transaction.hash}
-        </td>
-        <td className="p-3">{transaction.type}</td>
-        <td className={`p-3 font-medium ${
-          transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-        }`}>
-          {transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount}
-        </td>
-        <td className="p-3 text-gray-600">{transaction.date}</td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan={4} className="text-center p-3">No recent transactions</td>
-    </tr>
-  )}
-</tbody>
-
-            </table>
-          </div>
-</div> */}
+        )}
       </div>
     </div>
   );

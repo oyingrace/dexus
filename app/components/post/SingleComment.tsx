@@ -8,6 +8,7 @@ import moment from "moment"
 import useDeleteComment from "@/app/hooks/useDeleteComment"
 import useCreateBucketUrl from "@/app/hooks/useCreateBucketUrl"
 import { SingleCommentCompTypes } from "@/app/types"
+import { toast } from "react-toastify"
 
 export default function SingleComment({ comment, params }: SingleCommentCompTypes) {
 
@@ -26,7 +27,7 @@ export default function SingleComment({ comment, params }: SingleCommentCompType
             setIsDeleting(false)
         } catch (error) {
             console.log(error)
-            alert(error)
+            toast.error(`Error: ${error}`);
         }
     }
     return (
